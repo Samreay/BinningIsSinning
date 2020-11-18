@@ -19,6 +19,7 @@ def get_cosmo(om, w):
 
 class SNIaModel:
     def __init__(self, name, *data, bin=False, **kwargs):
+        logging.info(f"Making class {name}")
         self.name = name
         self.binned = bin
         self.kwargs = {"linestyle": "--" if bin else "-"}
@@ -35,11 +36,15 @@ class SNIaModel:
         self.cov = np.diag(self.data["mb_err"] ** 2)
         if len(data) > 1:
             for d in data[1:]:
+                logging.debug("Adding cov")
                 self.cov += compute_covariance_from_difference(self.data, d)
+            logging.info("Creating MV distribution")
             self.norm = mv(self.mbs, cov=self.cov)
+            logging.info("Made MV distribution")
         else:
             self.norm = norm(self.mbs, np.sqrt(np.diag(self.cov)))
         self.samples = None
+        logging.debug("Made object")
 
     def likelihood(self, om, w, MB):
         # This is slow, calling quad over and over
@@ -53,14 +58,14 @@ class SNIaModel:
 
     def posterior(self, x):
         om, w, MB = x
-        if not 0 < om < 1.0 or not -2 < w < 0 or not -20 < MB < -18.5:
+        if not 0.1 < om < 1.0 or not -2 < w < 0 or not -20 < MB < -18.5:
             return -np.inf
         like = self.likelihood(*x)
         if not np.isfinite(like):
             return -np.inf
         return like
 
-    def fit(self):
+    def fit(self, steps=500):
         os.makedirs(self.chain_folder, exist_ok=True)
         if os.path.exists(self.chain_file):
             logging.info(f"Reading existing chain file from {self.chain_file}")
@@ -68,15 +73,15 @@ class SNIaModel:
             self.samples = df
             return df
         else:
-            df = self.fit_model()
+            df = self.fit_model(steps=steps)
             logging.info(f"Saving chain file to {self.chain_file}")
             df.to_pickle(self.chain_file)
             self.samples = df
             return df
 
-    def fit_model(self, steps=1000):
-        ndim, nwalkers = 3, 30
-        p0 = np.random.uniform(size=(nwalkers, ndim)) + np.array([0, -1.5, -19.9])
+    def fit_model(self, steps=500):
+        ndim, nwalkers = 3, 50
+        p0 = 0.5 * np.random.uniform(size=(nwalkers, ndim)) + np.array([0.1, -1.25, -19.6])
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self.posterior)
         logging.debug(f"Running burn in for {self.name}")
         state = sampler.run_mcmc(p0, 100)

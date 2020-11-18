@@ -1,18 +1,21 @@
+import logging
+
 import numpy as np
 import pandas as pd
 from astropy.cosmology import FlatwCDM
-from scipy.stats import norm
+from scipy.stats import norm, skewnorm
 
 
-def generate_default_data(n=1000, obs_err_scale=0.001, zmin=0.01, zmax=1.0, om=0.3, w=-1.0, seed=0, sigma_int=0.05, MB=-19.36, beta=3.1, H0=70):
+def generate_default_data(n=1000, obs_err_scale=0.0, zmin=0.01, zmax=1.0, om=0.3, w=-1.0, seed=0, sigma_int=0.05, MB=-19.36, beta=3.1, H0=70):
+    logging.info("Generating data")
     np.random.seed(seed + 1)
     zs = sorted(np.random.uniform(low=zmin, high=zmax, size=n))
 
     # stat_scale is how we can try and get contours directly on the truth value
     # So we can differentiate between stat fluct and systematics without
     # having to run 100s of simulations.
-    MBs = norm(MB, obs_err_scale * sigma_int).rvs(n)
-    cs = norm(0, 0.07).rvs(n)
+    MBs = norm(MB, sigma_int).rvs(n)
+    cs = skewnorm(7, -0.15, 0.07).rvs(n)
 
     dist_mod = FlatwCDM(H0, om, w0=w).distmod(zs).value
     mb = dist_mod + MBs + beta * cs
@@ -26,8 +29,31 @@ def generate_default_data(n=1000, obs_err_scale=0.001, zmin=0.01, zmax=1.0, om=0
     return pd.DataFrame({"z": zs, "raw_mb_obs": mb_obs, "raw_mb_err": mb_err, "c_obs": c_obs, "c_err": c_err})
 
 
-def calculate_corrected_mb_from_data(df, beta=3.1, sigma_int=0.05):
+def standardise_tripp(df, sigma_int=0.05):
     # Emulating how BBC normally calculates a fiducial MU value
+    betas = np.linspace(2, 5, 100)
+    disp = np.inf
+    final_beta = None
+    result = None
+
+    fiducial = FlatwCDM(70, 0.3).distmod(df["z"]).value
+    for beta in betas:
+        mb = df["raw_mb_obs"] - beta * df["c_obs"]
+        mb_err = np.sqrt(df["raw_mb_err"] ** 2 + sigma_int ** 2 + (beta * df["c_err"]) ** 2)
+        mean, var = weighted_avg_and_var(mb - fiducial, 1 / (mb_err ** 2))
+        if var < disp:
+            final_beta = beta
+            disp = var
+            result = mb, mb_err
+    logging.info(f"Self calibration has tuned beta to {final_beta}")
+    df["mb"] = result[0]
+    df["mb_err"] = result[1]
+    return df
+
+
+def calculate_corrected_mb_from_data(df, beta=3.1, sigma_int=0.05):
+    logging.info("Applying Tripp correction")
+
     df["mb"] = df["raw_mb_obs"] - beta * df["c_obs"]
     df["mb_err"] = np.sqrt(df["raw_mb_err"] ** 2 + sigma_int ** 2 + (beta * df["c_err"]) ** 2)
     return df
@@ -72,8 +98,12 @@ def add_redshift_systematic(df):
     return df
 
 
-def add_beta_systematic(df, beta=3.4):
-    return calculate_corrected_mb_from_data(df.copy(), beta=beta)
+def add_color_systematic(df):
+    df = df.copy()
+    # Any systematic which combines some form change over redshift and *any* other variable will
+    # have information lost. For realistic examples of this, see the full analyses in the paper
+    df["raw_mb_obs"] += 0.5 * df["c_obs"] * df["z"] ** 2
+    return calculate_corrected_mb_from_data(df, beta=3.6)
 
 
 def compute_covariance_from_difference(df1, df2, scale=1.0):
