@@ -1,1 +1,1 @@
-# BinningIsSinning
+Run `main.py` to run fits and generate plots.
