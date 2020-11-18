@@ -28,13 +28,13 @@ if __name__ == "__main__":
 
     logging.info("Starting model fits")
     for m in models:
-        m.fit(steps=1000)
+        m.fit(steps=4000)
     print(get_cosmo.cache_info())
 
     # Bulk plotting, here we come
     logging.info("Starting plotting")
     plot(models, "all_contours.png")
-    plot([m for m in models if "Color" in m.name], "color_contours.png", shade=False, colors=["p", "b"])
+    plot([m for m in models if "Color" in m.name], "color_contours.png", shade=False, colors=["p", "b"], flip=True)
     plot_hubble(models, "hubble.png")
     plot_residuals(data_cor, data_with_zsys, "systematic_redshift.png")
     plot_residuals(data_cor, data_with_betasys, "systematic_color.png")

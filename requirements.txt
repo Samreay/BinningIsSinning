@@ -1,0 +1,7 @@
+emcee>=3.0.0
+chainconsumer>=0.32.0
+numpy
+astropy
+pandas
+matplotlib
+scipy

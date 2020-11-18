@@ -5,7 +5,6 @@ from astropy.cosmology import FlatwCDM
 from chainconsumer import ChainConsumer
 import numpy as np
 from scipy.interpolate import interp1d
-import seaborn as sb
 from scipy.stats import binned_statistic
 
 from config import cov_to_corr
@@ -15,11 +14,13 @@ os.makedirs(plot_folder, exist_ok=True)
 
 
 def plot(models, filename, **kwargs):
+    if "flip" not in kwargs:
+        kwargs["flip"] = False
     c = ChainConsumer()
     for m in models:
         c.add_chain(m.samples, name=m.name, **m.kwargs)
     filename = os.path.join(plot_folder, filename)
-    c.configure(bins=0.7, legend_artists=True, flip=False, **kwargs)
+    c.configure(bins=20, legend_artists=True, **kwargs)
     c.configure_truth(color="k", ls=":", lw=0.5)
     c.plotter.plot(filename=filename, figsize="COLUMN", truth=[0.3, -1, -19.36])
     c.plotter.plot(filename=filename.replace(".png", "_omw.png"), parameters=[r"$\Omega_m$", "$w$"], figsize="COLUMN", truth=[0.3, -1, -19.36])

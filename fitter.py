@@ -71,6 +71,7 @@ class SNIaModel:
             logging.info(f"Reading existing chain file from {self.chain_file}")
             df = pd.read_pickle(self.chain_file)
             self.samples = df
+            logging.info(f"Model {self.name} has {df.shape} samples")
             return df
         else:
             df = self.fit_model(steps=steps)
@@ -80,7 +81,7 @@ class SNIaModel:
             return df
 
     def fit_model(self, steps=500):
-        ndim, nwalkers = 3, 50
+        ndim, nwalkers = 3, 32
         p0 = 0.5 * np.random.uniform(size=(nwalkers, ndim)) + np.array([0.1, -1.25, -19.6])
         sampler = emcee.EnsembleSampler(nwalkers, ndim, self.posterior)
         logging.debug(f"Running burn in for {self.name}")
