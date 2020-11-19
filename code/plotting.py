@@ -25,23 +25,33 @@ def plot(models, filename, **kwargs):
 
 
 def plot_hubble(models, filename):
-    fig, axes = plt.subplots(figsize=(10, 8), nrows=2)
+    plt.rcParams["text.usetex"] = True
+    fig, axes = plt.subplots(figsize=(8, 4), nrows=2, gridspec_kw={"hspace": 0, "height_ratios": [2, 1]}, sharex=True)
 
     zs = np.geomspace(0.01, 1.0, 500)
     mb_cosmo = FlatwCDM(70, 0.3, w0=-1).distmod(zs).value - 19.36
     interp = interp1d(zs, mb_cosmo)
 
     for m in models:
-        ms = 3 if m.binned else 1
+        ms = 4 if m.binned else 1
         alpha = 1 if m.binned else 0.2
-        axes[0].errorbar(m.zs, m.mbs, yerr=np.sqrt(np.diag(m.cov)), c=m.kwargs.get("color"), ms=ms, lw=0.5, fmt="o", label=m.name, alpha=alpha)
-        axes[1].errorbar(m.zs, m.mbs - interp(m.zs), yerr=np.sqrt(np.diag(m.cov)), c=m.kwargs.get("color"), ms=ms, lw=0.5, fmt="o", label=m.name, alpha=alpha)
+        ec = "#eb150e" if m.binned else "#cfc0a5"
+        c = "#eb150e" if m.binned else "#e89c0e"
+        axes[0].errorbar(m.zs, m.mbs, yerr=np.sqrt(np.diag(m.cov)), c=c, ms=ms, lw=0.5, ecolor=ec, fmt="o", label=m.name, alpha=alpha)
+        axes[1].errorbar(m.zs, m.mbs - interp(m.zs), yerr=np.sqrt(np.diag(m.cov)), c=c, ms=ms, ecolor=ec, lw=0.5, fmt="o", label=m.name, alpha=alpha)
 
-    axes[0].plot(zs, mb_cosmo, c="r", lw=1.0, label="Truth")
-    axes[1].plot(zs, mb_cosmo - interp(zs), c="r", lw=1.0, label="Truth")
+    axes[0].plot(zs, mb_cosmo, c="k", lw=1.2, label="Truth")
+    axes[1].plot(zs, mb_cosmo - interp(zs), c="k", lw=1.0, label="Truth")
+    axes[0].margins(x=0)
+    axes[1].margins(x=0)
+    axes[0].legend(frameon=False, loc=4)
+    axes[1].set_xlabel("$z$")
+    axes[0].set_ylabel("$m_B^*$")
+    axes[1].set_ylabel("Residuals")
 
-    axes[0].legend()
-    fig.savefig(os.path.join(plot_folder, filename), bbox_inches="tight", dpi=200, transparent=True)
+    path = os.path.join(plot_folder, filename)
+    fig.savefig(path, bbox_inches="tight", dpi=200, transparent=True)
+    fig.savefig(path.replace(".png", ".pdf"), bbox_inches="tight", dpi=200, transparent=True)
 
 
 def plot_residuals(df, df_sys, filename):

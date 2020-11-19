@@ -25,14 +25,15 @@ if __name__ == "__main__":
 
     logging.info("Starting model fits")
     for m in models:
-        m.fit(steps=2000)
+        m.fit(steps=200)
 
     # Bulk plotting, here we come
     logging.info("Starting plotting")
     plot(models, "all_contours.png")
+    plot([m for m in models if "Baseline" in m.name], "baseline_contours.png", shade=False, colors=["k", "#999999"], flip=True)
     plot([m for m in models if "Color" in m.name], "color_contours.png", shade=False, colors=["p", "b"], flip=True)
     plot([m for m in models if "Redshift" in m.name], "redshift_contours.png", shade=False, colors=["a", "r"], flip=True)
-    plot_hubble(models, "hubble.png")
+    plot_hubble([m for m in models if "Baseline" in m.name], "hubble.png")
     plot_residuals(data_cor, data_with_zsys, "systematic_redshift.png")
     plot_residuals(data_cor, data_with_betasys, "systematic_color.png")
     for m in models:
