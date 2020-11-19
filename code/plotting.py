@@ -6,24 +6,22 @@ from chainconsumer import ChainConsumer
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.stats import binned_statistic
-
-from config import cov_to_corr
+from code.config import cov_to_corr
 
 plot_folder = "plots"
 os.makedirs(plot_folder, exist_ok=True)
 
 
 def plot(models, filename, **kwargs):
-    if "flip" not in kwargs:
-        kwargs["flip"] = False
+    kwargs["flip"] = kwargs.get("flip", False)
     c = ChainConsumer()
     for m in models:
         c.add_chain(m.samples, name=m.name, **m.kwargs)
     filename = os.path.join(plot_folder, filename)
-    c.configure(bins=20, legend_artists=True, **kwargs)
-    c.configure_truth(color="k", ls=":", lw=0.5)
-    c.plotter.plot(filename=filename, figsize="COLUMN", truth=[0.3, -1, -19.36])
-    c.plotter.plot(filename=filename.replace(".png", "_omw.png"), parameters=[r"$\Omega_m$", "$w$"], figsize="COLUMN", truth=[0.3, -1, -19.36])
+    f2 = filename.replace(".png", "_omw.png")
+    c.configure(bins=20, legend_artists=True, shade_gradient=0.0, **kwargs)
+    c.plotter.plot(filename=[filename, filename.replace(".png", ".pdf")], figsize="COLUMN")
+    c.plotter.plot(filename=[f2, f2.replace(".png", ".pdf")], parameters=[r"$\Omega_m$", "$w$"], figsize="COLUMN")
 
 
 def plot_hubble(models, filename):

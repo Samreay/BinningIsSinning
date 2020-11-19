@@ -8,7 +8,7 @@ import numpy as np
 import logging
 import pandas as pd
 import os
-from generate_data import bin_data, compute_covariance_from_difference
+from code.generate_data import bin_data, compute_covariance_from_difference
 
 
 @lru_cache(maxsize=32768)
