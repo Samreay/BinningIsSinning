@@ -90,12 +90,8 @@ def bin_data(df, zbins=20):
 
 def add_redshift_systematic(df):
     df = df.copy()
-
-    def fn(zs):
-        return FlatwCDM(70, 0.3, w0=-1.05).distmod(zs).value - FlatwCDM(70, 0.3, w0=-1.0).distmod(zs).value
-
-    df["mb"] += fn(df["z"])
-    return df
+    df["raw_mb_obs"] += 0.03 * df["z"] ** 2
+    return calculate_corrected_mb_from_data(df)
 
 
 def add_color_systematic(df):
@@ -103,7 +99,7 @@ def add_color_systematic(df):
     # Any systematic which combines some form change over redshift and *any* other variable will
     # have information lost. For realistic examples of this, see the full analyses in the paper
     df["raw_mb_obs"] += 0.5 * df["c_obs"] * df["z"] ** 2
-    return calculate_corrected_mb_from_data(df, beta=3.6)
+    return calculate_corrected_mb_from_data(df)
 
 
 def compute_covariance_from_difference(df1, df2, scale=1.0):

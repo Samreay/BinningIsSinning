@@ -9,7 +9,7 @@ if __name__ == "__main__":
     setup_logging()
 
     # Generate raw data and the standardised data which has the beta*c correction applied
-    data_raw = generate_default_data(n=1000)
+    data_raw = generate_default_data(n=2000)
     data_cor = calculate_corrected_mb_from_data(data_raw)
     data_with_zsys = add_redshift_systematic(data_cor)
     data_with_betasys = add_color_systematic(data_cor)
@@ -28,13 +28,14 @@ if __name__ == "__main__":
 
     logging.info("Starting model fits")
     for m in models:
-        m.fit(steps=4000)
+        m.fit(steps=2000)
     print(get_cosmo.cache_info())
 
     # Bulk plotting, here we come
     logging.info("Starting plotting")
     plot(models, "all_contours.png")
     plot([m for m in models if "Color" in m.name], "color_contours.png", shade=False, colors=["p", "b"], flip=True)
+    plot([m for m in models if "Redshift" in m.name], "redshift_contours.png", shade=False, colors=["a", "r"], flip=True)
     plot_hubble(models, "hubble.png")
     plot_residuals(data_cor, data_with_zsys, "systematic_redshift.png")
     plot_residuals(data_cor, data_with_betasys, "systematic_color.png")
