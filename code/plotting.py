@@ -19,9 +19,9 @@ def plot(models, filename, **kwargs):
         c.add_chain(m.samples, name=m.name, **m.kwargs)
     filename = os.path.join(plot_folder, filename)
     f2 = filename.replace(".png", "_omw.png")
-    c.configure(bins=20, legend_artists=True, shade_gradient=0.0, linewidths=1.2, **kwargs)
+    c.configure(bins=20, legend_artists=True, shade_gradient=0.0, linewidths=1.2, plot_hists=False, legend_kwargs={"loc": 3}, **kwargs)
     c.plotter.plot(filename=[filename, filename.replace(".png", ".pdf")], figsize="COLUMN")
-    c.plotter.plot(filename=[f2, f2.replace(".png", ".pdf")], parameters=[r"$\Omega_m$", "$w$"], figsize="COLUMN")
+    c.plotter.plot(filename=[f2, f2.replace(".png", ".pdf")], parameters=[r"$\Omega_m$", "$w$"], figsize=1.0)
 
 
 def plot_hubble(models, filename):
