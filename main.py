@@ -43,6 +43,8 @@ if __name__ == "__main__":
     plot([m for m in models if "Redshift" in m.name and "scale" not in m.name], "redshift_contours.png", shade=False, colors=["a", "r"], flip=True)
     plot([m for m in models if "Color" in m.name and "scale" in m.name], "scale_color_contours.png", shade=False, colors=["p", "b"], flip=True)
     plot([m for m in models if "Redshift" in m.name and "scale" in m.name], "scale_redshift_contours.png", shade=False, colors=["a", "r"], flip=True)
+    plot([m for m in models if "Color" in m.name], "all_color_contours.png", shade=False, colors=["b", "lb", "g", "lg"], flip=True)
+    plot([m for m in models if "Redshift" in m.name], "all_redshift_contours.png", shade=False, colors=["b", "lb", "g", "lg"], flip=True)
     plot_hubble([m for m in models if "Baseline" in m.name], "hubble.png")
     plot_residuals(data_cor, data_with_zsys, "systematic_redshift.png")
     plot_residuals(data_cor, data_with_betasys, "systematic_color.png")
