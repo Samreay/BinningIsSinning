@@ -16,6 +16,7 @@ def generate_default_data(n=1000, obs_err_scale=0.0, zmin=0.01, zmax=1.0, om=0.3
     # having to run 100s of simulations. Perfect measurements that we pretend have uncertainty.
     MBs = norm(MB, sigma_int).rvs(n)
     cs = skewnorm(7, -0.15, 0.07).rvs(n)
+    cs += -.1*np.array(zs)-np.mean(-.1*np.array(zs))
 
     dist_mod = FlatwCDM(H0, om, w0=w).distmod(zs).value
     mb = dist_mod + MBs + beta * cs
@@ -71,12 +72,32 @@ def add_redshift_systematic(df):
     df["raw_mb_obs"] += 0.03 * df["z"] ** 2
     return standardise_data(df)
 
+def add_cosmoredshift_systematic(df):
+    df = df.copy()
+    syscosmo = FlatwCDM(H0=70, Om0=.3,w0=-1.15)
+    sysdist = syscosmo.distmod(df["z"]).value
+    nomcosmo = FlatwCDM(H0=70, Om0=.3,w0=-1)
+    nomdist = nomcosmo.distmod(df["z"]).value
+
+
+    df["raw_mb_obs"] += nomdist-sysdist
+
+    return standardise_data(df)
+
 
 def add_color_systematic(df):
     df = df.copy()
     # Any systematic which combines some form change over redshift and *any* other variable will
     # have information lost. For realistic examples of this, see the full analyses in the paper
     df["raw_mb_obs"] += 0.5 * df["c_obs"] * df["z"] ** 2
+    return standardise_data(df)
+
+def add_betacolor_systematic(df):
+    df = df.copy()
+    #df["raw_mb_obs"] += -2. * df["c_obs"] * df["z"] 
+    #df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"]+.05)**2 -10 * df["c_obs"] -.07
+    #df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"])**2 -1 * df["c_obs"]
+    df["raw_mb_obs"] += -1*(df["c_obs"])#+ .1*df['z']**.5-.15
     return standardise_data(df)
 
 
