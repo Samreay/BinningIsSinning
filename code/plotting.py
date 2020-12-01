@@ -7,6 +7,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.stats import binned_statistic
 from code.config import cov_to_corr
+
 plt.style.use("custom")
 
 plot_folder = "plots"
@@ -64,21 +65,21 @@ def plot_hubble(models, filename):
 
 def plot_residuals(df, df_sys, filename):
     logging.info(f"Plotting resiuals to {filename}")
-    fig, axes = plt.subplots(ncols=1,nrows=2, figsize=(8, 8))
+    fig, axes = plt.subplots(ncols=1, nrows=2, figsize=(8, 8))
     diff = df["mb"] - df_sys["mb"]
 
     for ax, p in zip(axes, ["z", "c_obs"]):
-        ax.scatter(df_sys[p], diff, s=1, marker='o',color='skyblue')
+        ax.scatter(df_sys[p], diff, s=1, marker="o", color="skyblue")
         mean, edges, _ = binned_statistic(df_sys[p], diff)
         edge_center = 0.5 * (edges[1:] + edges[:-1])
         ax.plot(edge_center, mean, c="k")
-        ax.set_ylabel(r'$\mu_{nom}-\mu_{sys}$')
+        ax.set_ylabel(r"$\mu_{nom}-\mu_{sys}$")
         if p == "z":
             ax.set_xscale("log")
-            ax.set_xlabel('Redshift')
+            ax.set_xlabel("Redshift")
         else:
-            ax.set_xlabel(r'$c_{obs}$')
-            ax.set_ylim(-.2,.1)
+            ax.set_xlabel(r"$c_{obs}$")
+            ax.set_ylim(-0.2, 0.1)
 
     plt.tight_layout()
     fig.savefig(os.path.join(plot_folder, filename), bbox_inches="tight", dpi=200)

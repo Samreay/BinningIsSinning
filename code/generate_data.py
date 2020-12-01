@@ -9,14 +9,14 @@ from scipy.stats import norm, skewnorm
 def generate_default_data(n=1000, obs_err_scale=0.0, zmin=0.01, zmax=1.0, om=0.3, w=-1.0, seed=0, sigma_int=0.05, MB=-19.36, beta=3.1, H0=70):
     logging.info("Generating data")
     np.random.seed(seed + 1)
-    zs = sorted(np.random.uniform(low=zmin, high=zmax, size=n))
+    zs = np.array(sorted(np.random.uniform(low=zmin, high=zmax, size=n)))
 
     # obs_err_scale is how we can try and get contours directly on the truth value
     # So we can differentiate between stat fluct and systematics without
     # having to run 100s of simulations. Perfect measurements that we pretend have uncertainty.
     MBs = norm(MB, sigma_int).rvs(n)
     cs = skewnorm(7, -0.15, 0.07).rvs(n)
-    cs += -.1*np.array(zs)-np.mean(-.1*np.array(zs))
+    cs += -0.1 * zs - np.mean(-0.1 * zs)
 
     dist_mod = FlatwCDM(H0, om, w0=w).distmod(zs).value
     mb = dist_mod + MBs + beta * cs
@@ -72,15 +72,15 @@ def add_redshift_systematic(df):
     df["raw_mb_obs"] += 0.03 * df["z"] ** 2
     return standardise_data(df)
 
+
 def add_cosmoredshift_systematic(df):
     df = df.copy()
-    syscosmo = FlatwCDM(H0=70, Om0=.3,w0=-1.15)
+    syscosmo = FlatwCDM(H0=70, Om0=0.3, w0=-1.15)
     sysdist = syscosmo.distmod(df["z"]).value
-    nomcosmo = FlatwCDM(H0=70, Om0=.3,w0=-1)
+    nomcosmo = FlatwCDM(H0=70, Om0=0.3, w0=-1)
     nomdist = nomcosmo.distmod(df["z"]).value
 
-
-    df["raw_mb_obs"] += nomdist-sysdist
+    df["raw_mb_obs"] += nomdist - sysdist
 
     return standardise_data(df)
 
@@ -92,12 +92,13 @@ def add_color_systematic(df):
     df["raw_mb_obs"] += 0.5 * df["c_obs"] * df["z"] ** 2
     return standardise_data(df)
 
+
 def add_betacolor_systematic(df):
     df = df.copy()
-    #df["raw_mb_obs"] += -2. * df["c_obs"] * df["z"] 
-    #df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"]+.05)**2 -10 * df["c_obs"] -.07
-    #df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"])**2 -1 * df["c_obs"]
-    df["raw_mb_obs"] += -1*(df["c_obs"])#+ .1*df['z']**.5-.15
+    # df["raw_mb_obs"] += -2. * df["c_obs"] * df["z"]
+    # df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"]+.05)**2 -10 * df["c_obs"] -.07
+    # df["raw_mb_obs"] +=  20 * df["z"] * (df["c_obs"])**2 -1 * df["c_obs"]
+    df["raw_mb_obs"] += -1 * (df["c_obs"])  # + .1*df['z']**.5-.15
     return standardise_data(df)
 
 
