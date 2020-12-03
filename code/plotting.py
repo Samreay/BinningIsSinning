@@ -8,8 +8,6 @@ from scipy.interpolate import interp1d
 from scipy.stats import binned_statistic
 from code.config import cov_to_corr
 
-plt.style.use("custom")
-
 plot_folder = "plots"
 os.makedirs(plot_folder, exist_ok=True)
 

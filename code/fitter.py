@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 import emcee
+from numpy.linalg import slogdet
 from scipy.interpolate import interp1d
 from scipy.stats import norm, multivariate_normal as mv
 from astropy.cosmology import FlatwCDM
@@ -41,6 +42,7 @@ class SNIaModel:
             self.norm = mv(self.mbs, cov=self.cov)
         else:
             self.norm = norm(self.mbs, np.sqrt(np.diag(self.cov)))
+        logging.info(f"Determinant of {name} covariance is {slogdet(self.cov)}")
         self.samples = None
 
     def likelihood(self, om, w, MB, delta=None):
